@@ -6,7 +6,7 @@ import numpy as np
 from rich import print
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 绘制损失曲线
 def plot_loss(losses):
@@ -22,8 +22,8 @@ def plot_loss(losses):
 
 # 绘制数值解图像
 def plot_solution(model):
-    x = torch.linspace(-1, 1, 100).unsqueeze(1).to(device)
-    t = torch.full((100, 1), 0.0).to(device)  # 在t=0时绘制解
+    x = torch.linspace(-1, 1, 100).unsqueeze(1).to(DEVICE)
+    t = torch.full((100, 1), 0.0).to(DEVICE)  # 在t=0时绘制解
     with torch.no_grad():
         u_pred = model(t, x).cpu().numpy()
 
@@ -51,8 +51,8 @@ def plot_solution_3d(model):
     X, T = torch.meshgrid(x.squeeze(), t.squeeze())
 
     # 将 X 和 T 拉平，方便模型预测
-    x_flat = X.reshape(-1, 1).to(device)
-    t_flat = T.reshape(-1, 1).to(device)
+    x_flat = X.reshape(-1, 1).to(DEVICE)
+    t_flat = T.reshape(-1, 1).to(DEVICE)
 
     with torch.no_grad():
         u_pred = model(t_flat, x_flat).cpu().numpy().reshape(100, 100)
@@ -78,8 +78,8 @@ def plot_solution_contour(model):
     X, T = torch.meshgrid(x.squeeze(), t.squeeze())
 
     # 将 X 和 T 拉平，方便模型预测
-    x_flat = X.reshape(-1, 1).to(device)
-    t_flat = T.reshape(-1, 1).to(device)
+    x_flat = X.reshape(-1, 1).to(DEVICE)
+    t_flat = T.reshape(-1, 1).to(DEVICE)
 
     with torch.no_grad():
         u_pred = model(t_flat, x_flat).cpu().numpy().reshape(100, 100)
@@ -134,7 +134,7 @@ def boundary_loss(model, t, x_left, x_right):
 
 # 初始条件损失
 def initial_loss(model, x):
-    t_0 = torch.zeros_like(x).to(device)
+    t_0 = torch.zeros_like(x).to(DEVICE)
     u_init = model(t_0, x)
     u_exact = -torch.sin(torch.pi * x)
     return (u_init - u_exact).pow(2).mean()
@@ -147,20 +147,20 @@ def train(model, optimizer, num_epochs):
         optimizer.zero_grad()
 
         # 随机采样 t 和 x，并确保 requires_grad=True
-        t = torch.rand(3000, 1, requires_grad=True).to(device)
-        x = (torch.rand(3000, 1, requires_grad=True) * 2 - 1).to(device)  # x ∈ [-1, 1]
+        t = torch.rand(3000, 1, requires_grad=True).to(DEVICE)
+        x = (torch.rand(3000, 1, requires_grad=True) * 2 - 1).to(DEVICE)  # x ∈ [-1, 1]
 
         # 物理损失
         f_loss = physics_loss(model, t, x)
 
         # 边界条件损失
-        t_bc = torch.rand(500, 1).to(device)
-        x_left = -torch.ones(500, 1).to(device)
-        x_right = torch.ones(500, 1).to(device)
+        t_bc = torch.rand(500, 1).to(DEVICE)
+        x_left = -torch.ones(500, 1).to(DEVICE)
+        x_right = torch.ones(500, 1).to(DEVICE)
         bc_loss = boundary_loss(model, t_bc, x_left, x_right)
 
         # 初始条件损失
-        x_ic = (torch.rand(1000, 1) * 2 - 1).to(device)
+        x_ic = (torch.rand(1000, 1) * 2 - 1).to(DEVICE)
         ic_loss = initial_loss(model, x_ic)
 
         # 总损失
@@ -179,7 +179,7 @@ def train(model, optimizer, num_epochs):
 
 if __name__ == '__main__':
     # 初始化模型和优化器
-    model = PINN().to(device)
+    model = PINN().to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     # 训练模型
     losses = train(model, optimizer, num_epochs=30000)

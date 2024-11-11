@@ -168,7 +168,7 @@ model = PINN()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 # 训练模型
-losses = train(model, optimizer, num_epochs = 1000)
+losses = train(model, optimizer, num_epochs = 30000)
 
 # 绘制训练损失曲线
 plot_loss(losses)
